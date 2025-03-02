@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.3';
+const CARD_VERSION = '1.3.4';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -48,7 +48,7 @@ class AxiumCard extends LitElement {
         font-weight: 500;
         margin-bottom: 16px;
         color: var(--mmp-text-color);
-        font-size: 1.4em;
+        font-size: 1.5em;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -110,7 +110,7 @@ class AxiumCard extends LitElement {
       
       .mmp-player__name {
         font-weight: var(--mmp-name-font-weight);
-        font-size: 1rem;
+        font-size: 1.1rem;
         color: var(--mmp-text-color);
         white-space: nowrap;
         overflow: hidden;
@@ -118,24 +118,25 @@ class AxiumCard extends LitElement {
       }
       
       .mmp-player__source {
-        font-size: 1rem;
+        font-size: 1.1rem;
         opacity: var(--mmp-info-opacity);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-right: 4px;
+        margin-right: 0;
       }
       
       .mmp-player__controls-flex {
         display: flex;
         align-items: center;
         margin-left: auto;
+        gap: 4px;
       }
       
       .mmp-player__media-dropdown {
         position: relative;
         height: 42px;
-        width: 42px;
+        width: 30px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -176,7 +177,7 @@ class AxiumCard extends LitElement {
       .mmp-player__source-option {
         padding: 8px 16px;
         cursor: pointer;
-        font-size: 1rem;
+        font-size: 1.1rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -195,7 +196,7 @@ class AxiumCard extends LitElement {
         height: 42px;
         width: 42px;
         min-width: 42px;
-        margin-left: 8px;
+        margin-left: 0;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -241,7 +242,7 @@ class AxiumCard extends LitElement {
       
       .mmp-player__slider-label {
         min-width: 60px;
-        font-size: 0.9rem;
+        font-size: 1rem;
         opacity: var(--mmp-info-opacity);
         display: flex;
         align-items: center;
@@ -288,7 +289,7 @@ class AxiumCard extends LitElement {
       .mmp-player__slider-value {
         min-width: 30px;
         text-align: right;
-        font-size: 0.9rem;
+        font-size: 1rem;
         opacity: var(--mmp-info-opacity);
       }
       
