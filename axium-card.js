@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.4';
+const CARD_VERSION = '1.3.5';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -48,13 +48,14 @@ class AxiumCard extends LitElement {
         font-weight: 500;
         margin-bottom: 16px;
         color: var(--mmp-text-color);
-        font-size: 1.5em;
+        font-size: 1.7em;
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
       
       .mmp-title__version {
+        display: none; /* Hide version number */
         font-size: 0.7em;
         opacity: 0.5;
       }
@@ -565,7 +566,6 @@ class AxiumCard extends LitElement {
       <ha-card>
         <div class="mmp-title">
           <span>${this.config.title || 'Axium Amplifier'}</span>
-          <span class="mmp-title__version">v${CARD_VERSION}</span>
         </div>
         ${this.zones.map(zoneId => this._renderZone(zoneId))}
       </ha-card>
