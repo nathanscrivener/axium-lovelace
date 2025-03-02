@@ -145,7 +145,7 @@ class AxiumCard extends LitElement {
       if (!friendlyName) return false;
       
       // Extract zone name from partialId (e.g., "master_bedroom" from "master_bedroom_bass")
-      const zoneName = partialId.split('_')[0];
+      const zoneName = partialId.split('_').slice(0, -1).join('_');
       return friendlyName.toLowerCase().includes(zoneName.toLowerCase());
     });
     
@@ -175,20 +175,20 @@ class AxiumCard extends LitElement {
               return html`<div>Media player entity not found: ${mediaPlayerEntity}</div>`;
             }
             
-            // Try to find bass and treble entities using a fuzzy search
-            const bassSearchId = `${zoneId}_bass`;
-            const trebleSearchId = `${zoneId}_treble`;
+            // Try to find bass and treble entities using the correct naming convention
+            const bassEntity = `number.axium_${zoneId}_bass`;
+            const trebleEntity = `number.axium_${zoneId}_treble`;
             
-            const bass = this._findEntity('number', bassSearchId);
-            const treble = this._findEntity('number', trebleSearchId);
+            const bass = this.hass.states[bassEntity];
+            const treble = this.hass.states[trebleEntity];
             
             // Log debug info for this zone
             console.log(`Zone ${zoneId}:`, {
               mediaPlayer: mediaPlayerEntity,
-              bassSearchId: bassSearchId,
-              trebleSearchId: trebleSearchId,
-              bassFound: bass ? bass.entity_id : 'not found',
-              trebleFound: treble ? treble.entity_id : 'not found',
+              bassEntity: bassEntity,
+              trebleEntity: trebleEntity,
+              bassFound: bass ? 'found' : 'not found',
+              trebleFound: treble ? 'found' : 'not found',
             });
             
             const isPowered = mediaPlayer.state !== 'off';
@@ -236,10 +236,10 @@ class AxiumCard extends LitElement {
                                max=${bass.attributes.max || 10} 
                                step=${bass.attributes.step || 1} 
                                .value=${bass.state}
-                               @change=${(e) => this._setBass(bass.entity_id, e.target.value)}>
+                               @change=${(e) => this._setBass(bassEntity, e.target.value)}>
                         <div>${bass.state}</div>
                       </div>
-                    ` : html`<div>Bass control not found for ${zoneId}</div>`}
+                    ` : html`<div>Bass control not found: ${bassEntity}</div>`}
                     
                     ${treble ? html`
                       <div class="slider-container">
@@ -249,10 +249,10 @@ class AxiumCard extends LitElement {
                                max=${treble.attributes.max || 10} 
                                step=${treble.attributes.step || 1} 
                                .value=${treble.state}
-                               @change=${(e) => this._setTreble(treble.entity_id, e.target.value)}>
+                               @change=${(e) => this._setTreble(trebleEntity, e.target.value)}>
                         <div>${treble.state}</div>
                       </div>
-                    ` : html`<div>Treble control not found for ${zoneId}</div>`}
+                    ` : html`<div>Treble control not found: ${trebleEntity}</div>`}
                   </div>
                 </div>
               </div>
