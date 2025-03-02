@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.2';
+const CARD_VERSION = '1.3.3';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -48,7 +48,7 @@ class AxiumCard extends LitElement {
         font-weight: 500;
         margin-bottom: 16px;
         color: var(--mmp-text-color);
-        font-size: 1.1em;
+        font-size: 1.4em;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -101,7 +101,6 @@ class AxiumCard extends LitElement {
       
       .mmp-player__info {
         flex: 1;
-        margin-right: auto;
         line-height: 1.2;
         display: flex;
         flex-direction: column;
@@ -130,7 +129,7 @@ class AxiumCard extends LitElement {
       .mmp-player__controls-flex {
         display: flex;
         align-items: center;
-        flex: 1;
+        margin-left: auto;
       }
       
       .mmp-player__media-dropdown {
@@ -619,6 +618,7 @@ class AxiumCard extends LitElement {
               <div class="mmp-player__name">${zoneName}</div>
             </div>
             
+            <!-- Controls on the right -->
             <div class="mmp-player__controls-flex">
               <!-- Source name to the left of dropdown -->
               ${isPowered && currentSource ? html`
@@ -644,14 +644,14 @@ class AxiumCard extends LitElement {
                   `)}
                 </div>
               </div>
-            </div>
-            
-            <!-- Power toggle -->
-            <div class="mmp-player__power" @click=${() => this._togglePower(mediaPlayerEntity)}>
-              <ha-icon 
-                icon="mdi:power" 
-                class="${isPowered ? 'active' : ''}">
-              </ha-icon>
+              
+              <!-- Power toggle -->
+              <div class="mmp-player__power" @click=${() => this._togglePower(mediaPlayerEntity)}>
+                <ha-icon 
+                  icon="mdi:power" 
+                  class="${isPowered ? 'active' : ''}">
+                </ha-icon>
+              </div>
             </div>
           </div>
           
