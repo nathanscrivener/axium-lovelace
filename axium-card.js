@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.4.1';
+const CARD_VERSION = '1.4.2';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -241,6 +241,7 @@ class AxiumCard extends LitElement {
         align-items: center;
         gap: 8px;
         width: 95%; /* Changed from 100% to 95% for better alignment */
+        padding-right: 42px; /* Add padding on the right side to match power button alignment */
       }
       
       .mmp-player__slider-label {
