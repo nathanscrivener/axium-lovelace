@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.4.3';
+const CARD_VERSION = '1.4.4';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -485,25 +485,35 @@ class AxiumCard extends LitElement {
     const rect = container.getBoundingClientRect();
     const value = this._calculateSliderValue(e, rect, min, max);
     
+    // Initialize this value if not yet set
+    if (!container._lastSentValue) {
+      container._lastSentValue = value;
+    }
+    
     // Update thumb position visually
     this._updateSliderPosition(container, value, min, max);
     
     // Update tooltip position and value
     this._updateTooltip(container, value);
     
-    // Call the callback with the new value
-    if (callback) {
-      callback(value);
+    // Track interaction - used to prevent race conditions
+    container._userInteracting = true;
+    
+    // Call the callback with the new value only if it's significantly different
+    if (Math.abs(container._lastSentValue - value) > (step * 2)) {
+      container._lastSentValue = value;
+      if (callback) {
+        callback(value);
+      }
     }
     
     // Set up move and release handlers
     const moveHandler = (e) => {
       e.preventDefault();
       const newValue = this._calculateSliderValue(e, rect, min, max);
-      // Update in smaller increments for smoother appearance
-      this._updateSliderPosition(container, newValue, min, max);
       
-      // Update tooltip
+      // Always update visually for smooth appearance
+      this._updateSliderPosition(container, newValue, min, max);
       this._updateTooltip(container, newValue);
       
       // Apply step to the actual value we'll send
@@ -511,13 +521,16 @@ class AxiumCard extends LitElement {
       // Ensure the value is within bounds
       steppedValue = Math.max(min, Math.min(max, steppedValue));
       
-      // Throttle actual calls to avoid overwhelming the system
-      clearTimeout(this._sliderUpdateInterval[container.id]);
-      this._sliderUpdateInterval[container.id] = setTimeout(() => {
-        if (callback) {
-          callback(steppedValue);
-        }
-      }, 50);
+      // Only send updates when value changes significantly to reduce traffic
+      if (Math.abs(container._lastSentValue - steppedValue) > (step * 0.9)) {
+        clearTimeout(this._sliderUpdateInterval[container.id]);
+        this._sliderUpdateInterval[container.id] = setTimeout(() => {
+          container._lastSentValue = steppedValue;
+          if (callback) {
+            callback(steppedValue);
+          }
+        }, 100); // Increased from 50ms to 100ms for better stability
+      }
     };
     
     const upHandler = () => {
@@ -525,6 +538,11 @@ class AxiumCard extends LitElement {
       window.removeEventListener('mouseup', upHandler);
       window.removeEventListener('touchmove', moveHandler);
       window.removeEventListener('touchend', upHandler);
+      
+      // Clear user interaction flag after a delay to prevent race conditions
+      setTimeout(() => {
+        container._userInteracting = false;
+      }, 500);
     };
     
     window.addEventListener('mousemove', moveHandler);
@@ -595,7 +613,10 @@ class AxiumCard extends LitElement {
     container.setAttribute('data-min', min);
     container.setAttribute('data-max', max);
     
-    const percentage = (value - min) / (max - min) * 100;
+    // Use the stored value if available, otherwise use the provided value
+    const displayValue = (container._lastSentValue !== undefined) ? container._lastSentValue : value;
+    
+    const percentage = (displayValue - min) / (max - min) * 100;
     const track = container.querySelector('.mmp-player__slider-track');
     const thumb = container.querySelector('.mmp-player__slider-thumb');
     
@@ -615,18 +636,23 @@ class AxiumCard extends LitElement {
       container.appendChild(tooltip);
       
       // Determine what kind of slider this is and format accordingly
-      let displayValue;
+      let displayTooltipValue;
       if (container.id.startsWith('volume')) {
-        displayValue = `${Math.round(value * 100)}%`;
+        displayTooltipValue = `${Math.round(displayValue * 100)}%`;
       } else {
-        displayValue = Math.round(value);
+        displayTooltipValue = Math.round(displayValue);
       }
       
       // Set tooltip content
-      tooltip.textContent = displayValue;
+      tooltip.textContent = displayTooltipValue;
       
       // Position tooltip
       tooltip.style.left = `${percentage}%`;
+    }
+    
+    // Store the last value to prevent unnecessary updates
+    if (container._lastSentValue === undefined) {
+      container._lastSentValue = value;
     }
   }
 
@@ -864,7 +890,7 @@ class AxiumCard extends LitElement {
         if (mediaPlayer && mediaPlayer.state !== 'off') {
           const volume = mediaPlayer.attributes.volume_level || 0;
           const volumeSlider = this.shadowRoot.querySelector(`#volume-${zoneId}`);
-          if (volumeSlider) {
+          if (volumeSlider && !volumeSlider._userInteracting) {
             this._setupSlider(volumeSlider, volume, 0, 1);
           }
           
@@ -872,7 +898,7 @@ class AxiumCard extends LitElement {
           const bass = this.hass.states[bassEntity];
           if (bass) {
             const bassSlider = this.shadowRoot.querySelector(`#bass-${zoneId}`);
-            if (bassSlider) {
+            if (bassSlider && !bassSlider._userInteracting) {
               const min = bass.attributes.min || -10;
               const max = bass.attributes.max || 10;
               this._setupSlider(bassSlider, Number(bass.state), min, max);
@@ -883,7 +909,7 @@ class AxiumCard extends LitElement {
           const treble = this.hass.states[trebleEntity];
           if (treble) {
             const trebleSlider = this.shadowRoot.querySelector(`#treble-${zoneId}`);
-            if (trebleSlider) {
+            if (trebleSlider && !trebleSlider._userInteracting) {
               const min = treble.attributes.min || -10;
               const max = treble.attributes.max || 10;
               this._setupSlider(trebleSlider, Number(treble.state), min, max);
