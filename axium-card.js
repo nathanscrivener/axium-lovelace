@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.7';
+const CARD_VERSION = '1.3.8';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -232,6 +232,7 @@ class AxiumCard extends LitElement {
         padding-top: 16px;
         margin-left: 48px;
         gap: 12px;
+        padding-right: 42px; /* Add right padding to align with power button */
       }
       
       .mmp-player__slider-row {
@@ -239,10 +240,12 @@ class AxiumCard extends LitElement {
         flex-direction: row;
         align-items: center;
         gap: 8px;
+        width: 100%; /* Ensure full width */
       }
       
       .mmp-player__slider-label {
-        min-width: 60px;
+        min-width: 70px; /* Increased from 60px to prevent overlap */
+        width: 70px; /* Fixed width for consistent alignment */
         font-size: 1rem;
         opacity: var(--mmp-info-opacity);
         display: flex;
@@ -299,6 +302,7 @@ class AxiumCard extends LitElement {
       
       .mmp-player__slider-value {
         min-width: 30px;
+        width: 30px; /* Fixed width for consistent alignment */
         text-align: right;
         font-size: 1rem;
         opacity: var(--mmp-info-opacity);
