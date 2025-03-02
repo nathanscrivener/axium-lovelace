@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.9';
+const CARD_VERSION = '1.4.1';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -240,7 +240,7 @@ class AxiumCard extends LitElement {
         flex-direction: row;
         align-items: center;
         gap: 8px;
-        width: 100%; /* Ensure full width */
+        width: 95%; /* Changed from 100% to 95% for better alignment */
       }
       
       .mmp-player__slider-label {
@@ -288,16 +288,42 @@ class AxiumCard extends LitElement {
         display: block;
       }
       
-      /* Fix for Firefox to ensure circle appearance */
-      @-moz-document url-prefix() {
-        .mmp-player__slider-thumb {
-          border-radius: 50% !important;
-          overflow: hidden;
-        }
+      /* Add tooltip container */
+      .mmp-player__slider-tooltip {
+        visibility: hidden;
+        position: absolute;
+        background-color: var(--mmp-accent-color);
+        color: var(--mmp-text-color-inverted);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        white-space: nowrap;
+        bottom: 24px;
+        transform: translateX(-50%);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        z-index: 10;
+        pointer-events: none;
+        transition: visibility 0.1s ease, opacity 0.1s ease;
+        opacity: 0;
       }
       
-      .mmp-player__slider-container:hover .mmp-player__slider-thumb {
-        transform: translate(-50%, -50%) scale(1.2);
+      /* Add the triangle pointer */
+      .mmp-player__slider-tooltip:after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -8px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: var(--mmp-accent-color) transparent transparent transparent;
+      }
+      
+      /* Show tooltip on hover */
+      .mmp-player__slider-container:hover .mmp-player__slider-tooltip {
+        visibility: visible;
+        opacity: 1;
       }
       
       .mmp-player__slider-value {
@@ -306,6 +332,7 @@ class AxiumCard extends LitElement {
         text-align: right;
         font-size: 1rem;
         opacity: var(--mmp-info-opacity);
+        display: none; /* Hide the static value display */
       }
       
       .mmp-error {
@@ -459,6 +486,9 @@ class AxiumCard extends LitElement {
     // Update thumb position visually
     this._updateSliderPosition(container, value, min, max);
     
+    // Update tooltip position and value
+    this._updateTooltip(container, value);
+    
     // Call the callback with the new value
     if (callback) {
       callback(value);
@@ -470,6 +500,9 @@ class AxiumCard extends LitElement {
       const newValue = this._calculateSliderValue(e, rect, min, max);
       // Update in smaller increments for smoother appearance
       this._updateSliderPosition(container, newValue, min, max);
+      
+      // Update tooltip
+      this._updateTooltip(container, newValue);
       
       // Apply step to the actual value we'll send
       let steppedValue = Math.round(newValue / step) * step;
@@ -520,10 +553,45 @@ class AxiumCard extends LitElement {
       thumb.style.left = `${percentage}%`;
     }
   }
+  
+  // Add method to update tooltip
+  _updateTooltip(container, value) {
+    let tooltip = container.querySelector('.mmp-player__slider-tooltip');
+    const thumb = container.querySelector('.mmp-player__slider-thumb');
+    
+    // Create tooltip if it doesn't exist
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'mmp-player__slider-tooltip';
+      container.appendChild(tooltip);
+    }
+    
+    // Determine what kind of slider this is and format accordingly
+    let displayValue;
+    if (container.id.startsWith('volume')) {
+      displayValue = `${Math.round(value * 100)}%`;
+    } else {
+      displayValue = Math.round(value);
+    }
+    
+    // Update tooltip content
+    tooltip.textContent = displayValue;
+    
+    // Position tooltip to follow thumb
+    if (thumb) {
+      const percentage = (value - parseFloat(container.getAttribute('data-min') || 0)) / 
+                        (parseFloat(container.getAttribute('data-max') || 1) - parseFloat(container.getAttribute('data-min') || 0)) * 100;
+      tooltip.style.left = `${percentage}%`;
+    }
+  }
 
   // Setup slider with correct initial position
   _setupSlider(container, value, min, max) {
     if (!container) return;
+    
+    // Store min/max as data attributes for tooltip calculations
+    container.setAttribute('data-min', min);
+    container.setAttribute('data-max', max);
     
     const percentage = (value - min) / (max - min) * 100;
     const track = container.querySelector('.mmp-player__slider-track');
@@ -535,6 +603,28 @@ class AxiumCard extends LitElement {
       
       // Force the thumb to be visible and circular
       thumb.style.borderRadius = '50%';
+    }
+    
+    // Create tooltip for this slider
+    let tooltip = container.querySelector('.mmp-player__slider-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'mmp-player__slider-tooltip';
+      container.appendChild(tooltip);
+      
+      // Determine what kind of slider this is and format accordingly
+      let displayValue;
+      if (container.id.startsWith('volume')) {
+        displayValue = `${Math.round(value * 100)}%`;
+      } else {
+        displayValue = Math.round(value);
+      }
+      
+      // Set tooltip content
+      tooltip.textContent = displayValue;
+      
+      // Position tooltip
+      tooltip.style.left = `${percentage}%`;
     }
   }
 
