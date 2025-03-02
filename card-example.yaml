@@ -1,0 +1,8 @@
+type: 'custom:axium-card'
+title: My Axium System
+zones:
+  - master_bedroom
+  - ensuite
+  - living_room
+  - kitchen
+  # Add all the zone IDs you want to display 
