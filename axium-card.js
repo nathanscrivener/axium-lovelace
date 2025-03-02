@@ -116,27 +116,80 @@ class AxiumCard extends LitElement {
     });
   }
 
+  // Find entity by a partial name match
+  _findEntity(entityType, partialId) {
+    if (!this.hass) return null;
+    
+    // Look through all entities of the specified type
+    const entities = Object.keys(this.hass.states)
+      .filter(key => key.startsWith(entityType + '.'))
+      .map(key => this.hass.states[key]);
+    
+    // Try exact match first
+    const exactMatch = entities.find(entity => 
+      entity.entity_id.includes(partialId)
+    );
+    
+    if (exactMatch) return exactMatch;
+    
+    // Try to match by the unique_id in attributes if available
+    const attributeMatch = entities.find(entity => 
+      entity.attributes.unique_id && entity.attributes.unique_id.includes(partialId)
+    );
+    
+    if (attributeMatch) return attributeMatch;
+    
+    // Try to match by friendly name containing the zone name
+    const nameMatch = entities.find(entity => {
+      const friendlyName = entity.attributes.friendly_name;
+      if (!friendlyName) return false;
+      
+      // Extract zone name from partialId (e.g., "master_bedroom" from "master_bedroom_bass")
+      const zoneName = partialId.split('_')[0];
+      return friendlyName.toLowerCase().includes(zoneName.toLowerCase());
+    });
+    
+    return nameMatch || null;
+  }
+
   render() {
     if (!this.hass || !this.config) {
       return html``;
     }
+
+    // Debug: List all number entities to console
+    console.log("Available number entities:", Object.keys(this.hass.states)
+      .filter(key => key.startsWith('number.'))
+      .join(', '));
 
     return html`
       <ha-card>
         <div class="card-container">
           <h2>${this.config.title || 'Axium Amplifier'}</h2>
           ${this.zones.map(zoneId => {
+            // Get the media player entity
             const mediaPlayerEntity = `media_player.axium_${zoneId}`;
-            const bassEntity = `number.${zoneId}_bass`;
-            const trebleEntity = `number.${zoneId}_treble`;
-            
             const mediaPlayer = this.hass.states[mediaPlayerEntity];
-            const bass = this.hass.states[bassEntity];
-            const treble = this.hass.states[trebleEntity];
             
             if (!mediaPlayer) {
-              return html`<div>Entity not found: ${mediaPlayerEntity}</div>`;
+              return html`<div>Media player entity not found: ${mediaPlayerEntity}</div>`;
             }
+            
+            // Try to find bass and treble entities using a fuzzy search
+            const bassSearchId = `${zoneId}_bass`;
+            const trebleSearchId = `${zoneId}_treble`;
+            
+            const bass = this._findEntity('number', bassSearchId);
+            const treble = this._findEntity('number', trebleSearchId);
+            
+            // Log debug info for this zone
+            console.log(`Zone ${zoneId}:`, {
+              mediaPlayer: mediaPlayerEntity,
+              bassSearchId: bassSearchId,
+              trebleSearchId: trebleSearchId,
+              bassFound: bass ? bass.entity_id : 'not found',
+              trebleFound: treble ? treble.entity_id : 'not found',
+            });
             
             const isPowered = mediaPlayer.state !== 'off';
             const zoneName = mediaPlayer.attributes.friendly_name;
@@ -179,27 +232,27 @@ class AxiumCard extends LitElement {
                       <div class="slider-container">
                         <div class="slider-label">Bass</div>
                         <input type="range" class="slider" 
-                               min=${bass.attributes.min} 
-                               max=${bass.attributes.max} 
-                               step=${bass.attributes.step} 
+                               min=${bass.attributes.min || -10} 
+                               max=${bass.attributes.max || 10} 
+                               step=${bass.attributes.step || 1} 
                                .value=${bass.state}
-                               @change=${(e) => this._setBass(bassEntity, e.target.value)}>
+                               @change=${(e) => this._setBass(bass.entity_id, e.target.value)}>
                         <div>${bass.state}</div>
                       </div>
-                    ` : ''}
+                    ` : html`<div>Bass control not found for ${zoneId}</div>`}
                     
                     ${treble ? html`
                       <div class="slider-container">
                         <div class="slider-label">Treble</div>
                         <input type="range" class="slider" 
-                               min=${treble.attributes.min} 
-                               max=${treble.attributes.max} 
-                               step=${treble.attributes.step} 
+                               min=${treble.attributes.min || -10} 
+                               max=${treble.attributes.max || 10} 
+                               step=${treble.attributes.step || 1} 
                                .value=${treble.state}
-                               @change=${(e) => this._setTreble(trebleEntity, e.target.value)}>
+                               @change=${(e) => this._setTreble(treble.entity_id, e.target.value)}>
                         <div>${treble.state}</div>
                       </div>
-                    ` : ''}
+                    ` : html`<div>Treble control not found for ${zoneId}</div>`}
                   </div>
                 </div>
               </div>
