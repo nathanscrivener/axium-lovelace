@@ -1,13 +1,14 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.2.0';
+const CARD_VERSION = '1.3.0';
 
 class AxiumCard extends LitElement {
   static get properties() {
     return {
       hass: { type: Object },
       config: { type: Object },
+      _showSourceMenu: { type: Object },
     };
   }
 
@@ -36,41 +37,21 @@ class AxiumCard extends LitElement {
       ha-card {
         cursor: default;
         display: flex;
+        flex-direction: column;
         background: var(--ha-card-background, var(--card-background-color, #fff));
         border-radius: var(--ha-card-border-radius);
-        border: none;
-        box-shadow: var(--ha-card-box-shadow, 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2));
+        padding: 16px;
         overflow: hidden;
       }
       
-      .mmp-card__inner {
-        padding: 16px;
-        position: relative;
-        width: 100%;
-      }
-      
-      .mmp__bg {
-        background: var(--ha-card-background, var(--card-background-color, #fff));
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        opacity: var(--mmp-bg-opacity);
-      }
-      
-      .mmp-container {
-        position: relative;
-      }
-      
       .mmp-title {
-        padding: 0 0 8px 0;
+        font-weight: 500;
+        margin-bottom: 16px;
+        color: var(--mmp-text-color);
+        font-size: 1.1em;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-weight: 500;
-        font-size: 1.1em;
-        color: var(--mmp-text-color);
       }
       
       .mmp-title__version {
@@ -79,102 +60,180 @@ class AxiumCard extends LitElement {
       }
       
       /* Zone styling */
-      .mmp-zone {
+      .mmp-player {
         position: relative;
-        margin-bottom: 10px;
+        margin-bottom: 16px;
+        background: transparent;
         border-radius: 4px;
-        overflow: hidden;
-        background: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.05);
+        overflow: visible;
       }
 
-      .mmp-zone:last-child {
+      .mmp-player:last-child {
         margin-bottom: 0;
       }
 
-      .mmp-zone__container {
-        padding: 8px;
+      .mmp-player__inner {
         display: flex;
         flex-direction: column;
-        position: relative;
+        width: 100%;
       }
       
-      .mmp-zone__row {
+      .mmp-player__row {
         display: flex;
         align-items: center;
         position: relative;
       }
       
-      .mmp-zone__power {
-        min-width: 28px;
+      .mmp-player__icon {
+        min-width: 42px;
+        height: 42px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         margin-right: 8px;
+      }
+      
+      .mmp-player__icon ha-icon {
+        --mdc-icon-size: 22px;
+        display: flex;
+        color: var(--mmp-icon-color);
+      }
+      
+      .mmp-player__info {
+        flex: 1;
+        margin-right: auto;
+        line-height: 1.2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 42px;
+      }
+      
+      .mmp-player__name {
+        font-weight: var(--mmp-name-font-weight);
+        font-size: 0.95rem;
+        color: var(--mmp-text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .mmp-player__source {
+        font-size: 0.75rem;
+        opacity: var(--mmp-info-opacity);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .mmp-player__media-dropdown {
+        position: relative;
+        height: 42px;
+        width: 42px;
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
       }
       
-      .mmp-zone__power ha-icon {
-        --mdc-icon-size: 20px;
-        display: flex;
+      .mmp-player__media-dropdown ha-icon {
+        --mdc-icon-size: 22px;
         color: var(--mmp-icon-color);
-        padding: 5px;
-        border-radius: 50%;
-        transition: all 0.25s ease;
+        opacity: var(--mmp-info-opacity);
+        transform: rotate(90deg);
+        transition: transform 0.2s ease;
       }
       
-      .mmp-zone__power ha-icon.active {
-        color: var(--mmp-accent-color);
+      .mmp-player__media-dropdown.open ha-icon {
+        transform: rotate(270deg);
       }
       
-      .mmp-zone__power ha-icon:hover {
+      .mmp-player__media-dropdown-list {
+        position: absolute;
+        right: 0;
+        top: 42px;
+        z-index: 2;
+        width: auto;
+        min-width: 180px;
+        max-width: 250px;
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        padding: 4px 0;
+        display: none;
+      }
+      
+      .mmp-player__media-dropdown-list.open {
+        display: block;
+      }
+      
+      .mmp-player__source-option {
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      
+      .mmp-player__source-option:hover {
         background: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.1);
       }
       
-      .mmp-zone__power ha-icon.active:hover {
-        color: var(--mmp-text-color-inverted);
-        background-color: var(--mmp-accent-color);
+      .mmp-player__source-option.active {
+        background: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.05);
+        color: var(--mmp-accent-color);
       }
       
-      .mmp-zone__info {
-        flex: 1;
-        margin-right: 8px;
+      .mmp-player__power {
+        height: 42px;
+        width: 42px;
+        min-width: 42px;
+        margin-left: 8px;
+        cursor: pointer;
         display: flex;
-        flex-direction: column;
+        align-items: center;
         justify-content: center;
       }
       
-      .mmp-zone__name {
-        font-weight: var(--mmp-name-font-weight);
-        font-size: 0.95rem;
-        line-height: 1.2;
-        color: var(--mmp-text-color);
-      }
-      
-      .mmp-zone__source {
-        font-size: 0.75rem;
-        opacity: var(--mmp-info-opacity);
-        line-height: 1.2;
-        margin-top: 2px;
-      }
-      
-      .mmp-zone__controls-row {
+      .mmp-player__power ha-icon {
+        --mdc-icon-size: 22px;
         display: flex;
-        align-items: center;
-        margin-top: 8px;
+        color: var(--mmp-icon-color);
+        transition: color 0.25s ease, transform 0.15s ease;
+        opacity: var(--mmp-info-opacity);
       }
       
-      .mmp-zone__controls {
-        flex: 1;
+      .mmp-player__power ha-icon.active {
+        color: var(--mmp-accent-color);
+        opacity: 1;
+      }
+      
+      .mmp-player__power:hover ha-icon {
+        transform: scale(1.1);
+      }
+      
+      .mmp-player__power:active ha-icon {
+        transform: scale(0.95);
+      }
+      
+      .mmp-player__controls {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        width: 100%;
+        padding-top: 16px;
+        margin-left: 48px;
+        gap: 12px;
       }
       
-      .mmp-zone__slider-row {
+      .mmp-player__slider-row {
         display: flex;
+        flex-direction: row;
         align-items: center;
+        gap: 8px;
       }
       
-      .mmp-control-label {
+      .mmp-player__slider-label {
         min-width: 60px;
         font-size: 0.75rem;
         opacity: var(--mmp-info-opacity);
@@ -182,12 +241,12 @@ class AxiumCard extends LitElement {
         align-items: center;
       }
       
-      .mmp-control-label ha-icon {
-        --mdc-icon-size: 16px;
+      .mmp-player__slider-label ha-icon {
+        --mdc-icon-size: 18px;
         margin-right: 4px;
       }
       
-      .mmp-slider-container {
+      .mmp-player__slider-container {
         position: relative;
         flex: 1;
         height: var(--mmp-progress-height);
@@ -197,14 +256,14 @@ class AxiumCard extends LitElement {
         background-color: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.1);
       }
       
-      .mmp-slider-track {
+      .mmp-player__slider-track {
         position: absolute;
         height: 100%;
         background-color: var(--mmp-accent-color);
         transition: transform 0.15s ease;
       }
       
-      .mmp-slider-thumb {
+      .mmp-player__slider-thumb {
         position: absolute;
         top: 50%;
         height: 12px;
@@ -216,58 +275,15 @@ class AxiumCard extends LitElement {
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
       
-      .mmp-slider-container:hover .mmp-slider-thumb {
+      .mmp-player__slider-container:hover .mmp-player__slider-thumb {
         transform: translate(-50%, -50%) scale(1.2);
       }
       
-      .mmp-slider-value {
+      .mmp-player__slider-value {
         min-width: 30px;
         text-align: right;
         font-size: 0.75rem;
-        margin-left: 8px;
         opacity: var(--mmp-info-opacity);
-      }
-      
-      .mmp-source-select {
-        width: 100%;
-        margin-top: 8px;
-        display: flex;
-        align-items: center;
-        position: relative;
-      }
-      
-      .mmp-source-select label {
-        min-width: 60px;
-        font-size: 0.75rem;
-        opacity: var(--mmp-info-opacity);
-        display: flex;
-        align-items: center;
-      }
-      
-      .mmp-source-select label ha-icon {
-        --mdc-icon-size: 16px;
-        margin-right: 4px;
-      }
-      
-      .mmp-source-select select {
-        flex: 1;
-        border: none;
-        cursor: pointer;
-        padding: 4px 24px 4px 8px;
-        border-radius: 4px;
-        -webkit-appearance: none;
-        appearance: none;
-        background-color: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.06);
-        color: var(--primary-text-color);
-        font-size: 0.8rem;
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M7 10l5 5 5-5z"/></svg>');
-        background-repeat: no-repeat;
-        background-position: right 4px center;
-      }
-      
-      .mmp-source-select select:focus {
-        outline: none;
-        background-color: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.1);
       }
       
       .mmp-error {
@@ -285,15 +301,6 @@ class AxiumCard extends LitElement {
         margin-right: 8px;
         color: var(--error-color);
       }
-      
-      .mmp-disabled {
-        opacity: 0.5;
-        pointer-events: none;
-      }
-      
-      .mmp-hidden {
-        display: none;
-      }
     `;
   }
 
@@ -301,9 +308,19 @@ class AxiumCard extends LitElement {
     super();
     this.zones = [];
     this._sliderUpdateInterval = {};
+    this._showSourceMenu = {};
+    
+    // Bind global click handler to close dropdown menus when clicking outside
+    this._boundHandleClick = this._handleGlobalClick.bind(this);
+    document.addEventListener('click', this._boundHandleClick);
     
     // Log version
     console.log(`Axium Card v${CARD_VERSION} loading...`);
+  }
+  
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener('click', this._boundHandleClick);
   }
 
   setConfig(config) {
@@ -315,15 +332,38 @@ class AxiumCard extends LitElement {
     this.config = {
       ...config,
       show_error_messages: config.show_error_messages !== false, // default to true
-      show_as_cards: config.show_as_cards !== false, // default to true
     };
     
     this.zones = config.zones;
   }
 
+  // Close dropdowns when clicking outside
+  _handleGlobalClick(event) {
+    const path = event.composedPath();
+    
+    // Only process if we have a shadowRoot (component is initialized)
+    if (this.shadowRoot) {
+      const dropdowns = this.shadowRoot.querySelectorAll('.mmp-player__media-dropdown');
+      
+      // For each dropdown, check if the click was outside it
+      dropdowns.forEach(dropdown => {
+        if (!path.includes(dropdown)) {
+          const zoneId = dropdown.getAttribute('data-zone-id');
+          if (this._showSourceMenu[zoneId]) {
+            this._showSourceMenu = {
+              ...this._showSourceMenu,
+              [zoneId]: false
+            };
+            this.requestUpdate();
+          }
+        }
+      });
+    }
+  }
+  
   // Configure card size in UI
   getCardSize() {
-    return this.config.zones.length * 2.5;
+    return 1 + (this.config.zones.length * 2);
   }
 
   _togglePower(entity_id) {
@@ -332,11 +372,33 @@ class AxiumCard extends LitElement {
     });
   }
 
-  _selectSource(entity_id, source) {
+  _selectSource(entity_id, source, zoneId) {
+    // Close the dropdown menu
+    this._showSourceMenu = {
+      ...this._showSourceMenu,
+      [zoneId]: false
+    };
+    
+    // Select the source
     this.hass.callService('media_player', 'select_source', {
       entity_id: entity_id,
       source: source,
     });
+    
+    this.requestUpdate();
+  }
+
+  _toggleSourceMenu(zoneId, event) {
+    // Stop event propagation to prevent the global click handler from closing it immediately
+    event.stopPropagation();
+    
+    // Toggle menu for this zone only
+    this._showSourceMenu = {
+      ...this._showSourceMenu,
+      [zoneId]: !this._showSourceMenu[zoneId]
+    };
+    
+    this.requestUpdate();
   }
 
   _setVolume(entity_id, volume) {
@@ -427,8 +489,8 @@ class AxiumCard extends LitElement {
   }
 
   _updateSliderPosition(container, value, min, max) {
-    const track = container.querySelector('.mmp-slider-track');
-    const thumb = container.querySelector('.mmp-slider-thumb');
+    const track = container.querySelector('.mmp-player__slider-track');
+    const thumb = container.querySelector('.mmp-player__slider-thumb');
     
     if (track && thumb) {
       const percentage = (value - min) / (max - min) * 100;
@@ -439,9 +501,11 @@ class AxiumCard extends LitElement {
 
   // Setup slider with correct initial position
   _setupSlider(container, value, min, max) {
+    if (!container) return;
+    
     const percentage = (value - min) / (max - min) * 100;
-    const track = container.querySelector('.mmp-slider-track');
-    const thumb = container.querySelector('.mmp-slider-thumb');
+    const track = container.querySelector('.mmp-player__slider-track');
+    const thumb = container.querySelector('.mmp-player__slider-thumb');
     
     if (track && thumb) {
       track.style.width = `${percentage}%`;
@@ -487,21 +551,16 @@ class AxiumCard extends LitElement {
 
   render() {
     if (!this.hass || !this.config) {
-      return html`<ha-card><div class="mmp-card__inner">Loading Axium Card...</div></ha-card>`;
+      return html`<ha-card>Loading Axium Card...</ha-card>`;
     }
 
     return html`
       <ha-card>
-        <div class="mmp-card__inner">
-          <div class="mmp__bg"></div>
-          <div class="mmp-container">
-            <div class="mmp-title">
-              <span>${this.config.title || 'Axium Amplifier'}</span>
-              <span class="mmp-title__version">v${CARD_VERSION}</span>
-            </div>
-            ${this.zones.map(zoneId => this._renderZone(zoneId))}
-          </div>
+        <div class="mmp-title">
+          <span>${this.config.title || 'Axium Amplifier'}</span>
+          <span class="mmp-title__version">v${CARD_VERSION}</span>
         </div>
+        ${this.zones.map(zoneId => this._renderZone(zoneId))}
       </ha-card>
     `;
   }
@@ -533,54 +592,87 @@ class AxiumCard extends LitElement {
     const volume = mediaPlayer.attributes.volume_level || 0;
     const sources = mediaPlayer.attributes.source_list || [];
     
+    // Initialize source menu state if not already defined
+    if (this._showSourceMenu[zoneId] === undefined) {
+      this._showSourceMenu[zoneId] = false;
+    }
+    
     return html`
-      <div class="mmp-zone">
-        <div class="mmp-zone__container">
-          <!-- Top row with power, name and source -->
-          <div class="mmp-zone__row">
-            <div class="mmp-zone__power" @click=${() => this._togglePower(mediaPlayerEntity)}>
+      <div class="mmp-player">
+        <div class="mmp-player__inner">
+          <!-- Top row with controls -->
+          <div class="mmp-player__row">
+            <!-- Speaker icon -->
+            <div class="mmp-player__icon">
+              <ha-icon icon="mdi:speaker"></ha-icon>
+            </div>
+            
+            <!-- Zone info (name and source if on) -->
+            <div class="mmp-player__info">
+              <div class="mmp-player__name">${zoneName}</div>
+              ${isPowered && currentSource ? html`
+                <div class="mmp-player__source">${currentSource}</div>
+              ` : html``}
+            </div>
+            
+            <!-- Source dropdown menu -->
+            <div class="mmp-player__media-dropdown ${this._showSourceMenu[zoneId] ? 'open' : ''}" 
+                 data-zone-id="${zoneId}"
+                 @click=${(e) => this._toggleSourceMenu(zoneId, e)}>
+              <ha-icon icon="mdi:chevron-right"></ha-icon>
+              
+              <!-- Dropdown content -->
+              <div class="mmp-player__media-dropdown-list ${this._showSourceMenu[zoneId] ? 'open' : ''}">
+                ${sources.map(source => html`
+                  <div class="mmp-player__source-option ${source === currentSource ? 'active' : ''}"
+                       @click=${(e) => {
+                         e.stopPropagation();
+                         this._selectSource(mediaPlayerEntity, source, zoneId);
+                       }}>
+                    ${source}
+                  </div>
+                `)}
+              </div>
+            </div>
+            
+            <!-- Power toggle -->
+            <div class="mmp-player__power" @click=${() => this._togglePower(mediaPlayerEntity)}>
               <ha-icon 
                 icon="${isPowered ? 'mdi:power' : 'mdi:power-off'}" 
                 class="${isPowered ? 'active' : ''}">
               </ha-icon>
             </div>
-            
-            <div class="mmp-zone__info">
-              <div class="mmp-zone__name">${zoneName}</div>
-              ${isPowered && currentSource ? html`
-                <div class="mmp-zone__source">${currentSource}</div>
-              ` : html``}
-            </div>
           </div>
           
-          <div class="${isPowered ? '' : 'mmp-disabled'}">
-            <!-- Volume slider -->
-            <div class="mmp-zone__controls">
-              <div class="mmp-zone__slider-row">
-                <div class="mmp-control-label">
+          <!-- Controls section - only shown when powered on -->
+          ${isPowered ? html`
+            <div class="mmp-player__controls">
+              <!-- Volume slider -->
+              <div class="mmp-player__slider-row">
+                <div class="mmp-player__slider-label">
                   <ha-icon icon="mdi:volume-high"></ha-icon>
                   <span>Volume</span>
                 </div>
                 <div 
-                  class="mmp-slider-container" 
+                  class="mmp-player__slider-container" 
                   id="volume-${zoneId}"
                   @mousedown=${(e) => this._handleSliderDown(e, (val) => this._setVolume(mediaPlayerEntity, val), 0, 1, 0.01)}
                   @touchstart=${(e) => this._handleSliderDown(e, (val) => this._setVolume(mediaPlayerEntity, val), 0, 1, 0.01)}>
-                  <div class="mmp-slider-track"></div>
-                  <div class="mmp-slider-thumb"></div>
+                  <div class="mmp-player__slider-track"></div>
+                  <div class="mmp-player__slider-thumb"></div>
                 </div>
-                <div class="mmp-slider-value">${Math.round(volume * 100)}%</div>
+                <div class="mmp-player__slider-value">${Math.round(volume * 100)}%</div>
               </div>
               
               <!-- Bass slider -->
               ${bass ? html`
-                <div class="mmp-zone__slider-row">
-                  <div class="mmp-control-label">
+                <div class="mmp-player__slider-row">
+                  <div class="mmp-player__slider-label">
                     <ha-icon icon="mdi:tune-vertical-variant"></ha-icon>
                     <span>Bass</span>
                   </div>
                   <div 
-                    class="mmp-slider-container" 
+                    class="mmp-player__slider-container" 
                     id="bass-${zoneId}"
                     @mousedown=${(e) => this._handleSliderDown(
                       e, 
@@ -596,22 +688,22 @@ class AxiumCard extends LitElement {
                       bass.attributes.max || 10,
                       bass.attributes.step || 1
                     )}>
-                    <div class="mmp-slider-track"></div>
-                    <div class="mmp-slider-thumb"></div>
+                    <div class="mmp-player__slider-track"></div>
+                    <div class="mmp-player__slider-thumb"></div>
                   </div>
-                  <div class="mmp-slider-value">${bass.state}</div>
+                  <div class="mmp-player__slider-value">${bass.state}</div>
                 </div>
               ` : html``}
               
               <!-- Treble slider -->
               ${treble ? html`
-                <div class="mmp-zone__slider-row">
-                  <div class="mmp-control-label">
+                <div class="mmp-player__slider-row">
+                  <div class="mmp-player__slider-label">
                     <ha-icon icon="mdi:tune"></ha-icon>
                     <span>Treble</span>
                   </div>
                   <div 
-                    class="mmp-slider-container" 
+                    class="mmp-player__slider-container" 
                     id="treble-${zoneId}"
                     @mousedown=${(e) => this._handleSliderDown(
                       e, 
@@ -627,27 +719,14 @@ class AxiumCard extends LitElement {
                       treble.attributes.max || 10,
                       treble.attributes.step || 1
                     )}>
-                    <div class="mmp-slider-track"></div>
-                    <div class="mmp-slider-thumb"></div>
+                    <div class="mmp-player__slider-track"></div>
+                    <div class="mmp-player__slider-thumb"></div>
                   </div>
-                  <div class="mmp-slider-value">${treble.state}</div>
+                  <div class="mmp-player__slider-value">${treble.state}</div>
                 </div>
               ` : html``}
             </div>
-            
-            <!-- Source selector -->
-            <div class="mmp-source-select">
-              <label>
-                <ha-icon icon="mdi:music-box-multiple"></ha-icon>
-                <span>Source</span>
-              </label>
-              <select @change=${(e) => this._selectSource(mediaPlayerEntity, e.target.value)}>
-                ${sources.map(source => html`
-                  <option value=${source} ?selected=${source === currentSource}>${source}</option>
-                `)}
-              </select>
-            </div>
-          </div>
+          ` : html``}
         </div>
       </div>
     `;
@@ -661,7 +740,7 @@ class AxiumCard extends LitElement {
       this.zones.forEach(zoneId => {
         const mediaPlayerEntity = `media_player.axium_${zoneId}`;
         const mediaPlayer = this.hass.states[mediaPlayerEntity];
-        if (mediaPlayer) {
+        if (mediaPlayer && mediaPlayer.state !== 'off') {
           const volume = mediaPlayer.attributes.volume_level || 0;
           const volumeSlider = this.shadowRoot.querySelector(`#volume-${zoneId}`);
           if (volumeSlider) {
