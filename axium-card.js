@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.1.0';
+const CARD_VERSION = '1.1.1';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -36,7 +36,7 @@ class AxiumCard extends LitElement {
       }
       
       .card-heading {
-        padding: 0 8px 12px 8px;
+        padding: 0 8px 8px 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -51,8 +51,8 @@ class AxiumCard extends LitElement {
       }
       
       .zone {
-        margin-bottom: 12px;
-        padding: 12px;
+        margin-bottom: 8px;
+        padding: 8px;
         border-radius: var(--mmp-border-radius);
         background: var(--ha-card-background, var(--card-background-color, white));
         box-shadow: 0 2px 4px rgba(0,0,0,0.08);
@@ -68,8 +68,8 @@ class AxiumCard extends LitElement {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
         border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.06));
       }
       
@@ -83,6 +83,11 @@ class AxiumCard extends LitElement {
       
       .zone-power {
         cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       
       .zone-power ha-icon {
@@ -91,6 +96,9 @@ class AxiumCard extends LitElement {
         border-radius: 50%;
         background: var(--secondary-background-color, rgba(0,0,0,0.06));
         transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       
       .zone-power ha-icon:hover {
@@ -100,11 +108,11 @@ class AxiumCard extends LitElement {
       
       .source-selector {
         width: 100%;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         border: none;
         background: var(--secondary-background-color, rgba(0,0,0,0.06));
         border-radius: 4px;
-        padding: 10px 32px 10px 12px;
+        padding: 8px 32px 8px 12px;
         color: var(--primary-text-color);
         font-size: 0.9em;
         appearance: none;
@@ -123,24 +131,37 @@ class AxiumCard extends LitElement {
       .sliders {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 8px;
       }
       
       .slider-container {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+      }
+      
+      .slider-control-group {
+        display: flex;
+        align-items: center;
+        width: 70px;
       }
       
       .slider-icon {
-        --mdc-icon-size: 22px;
+        --mdc-icon-size: 18px;
         color: var(--mmp-icon-color);
         opacity: var(--mmp-info-opacity);
+        margin-right: 4px;
+      }
+      
+      .slider-label {
+        font-size: 0.8em;
+        opacity: 0.8;
+        white-space: nowrap;
       }
       
       .slider {
         flex-grow: 1;
-        height: 36px;
+        height: 32px;
         cursor: pointer;
         border-radius: 28px;
         --paper-slider-active-color: var(--mmp-accent-color);
@@ -150,10 +171,10 @@ class AxiumCard extends LitElement {
       }
       
       .slider-value {
-        min-width: 38px;
+        min-width: 32px;
         text-align: right;
         opacity: var(--mmp-unit-opacity);
-        font-size: 0.9em;
+        font-size: 0.8em;
         font-variant-numeric: tabular-nums;
       }
       
@@ -238,6 +259,12 @@ class AxiumCard extends LitElement {
     });
   }
 
+  // Helper to clean up zone names - remove "Axium" prefix
+  _cleanZoneName(zoneName) {
+    if (!zoneName) return '';
+    return zoneName.replace(/^Axium\s+/i, '');
+  }
+
   // Find entity by a partial name match
   _findEntity(entityType, partialId) {
     if (!this.hass) return null;
@@ -279,11 +306,6 @@ class AxiumCard extends LitElement {
       return html`<ha-card><div class="card-content">Loading Axium Card...</div></ha-card>`;
     }
 
-    // Debug: List all number entities to console
-    console.log("Available number entities:", Object.keys(this.hass.states)
-      .filter(key => key.startsWith('number.'))
-      .join(', '));
-
     return html`
       <ha-card>
         <div class="card-heading">
@@ -321,17 +343,8 @@ class AxiumCard extends LitElement {
     const bass = this.hass.states[bassEntity];
     const treble = this.hass.states[trebleEntity];
     
-    // Log debug info for this zone
-    console.log(`Zone ${zoneId}:`, {
-      mediaPlayer: mediaPlayerEntity,
-      bassEntity: bassEntity,
-      trebleEntity: trebleEntity,
-      bassFound: bass ? 'found' : 'not found',
-      trebleFound: treble ? 'found' : 'not found',
-    });
-    
     const isPowered = mediaPlayer.state !== 'off';
-    const zoneName = mediaPlayer.attributes.friendly_name;
+    const zoneName = this._cleanZoneName(mediaPlayer.attributes.friendly_name);
     const currentSource = mediaPlayer.attributes.source;
     const volume = mediaPlayer.attributes.volume_level || 0;
     const sources = mediaPlayer.attributes.source_list || [];
@@ -362,7 +375,10 @@ class AxiumCard extends LitElement {
           <div class="sliders">
             <!-- Volume control with icon -->
             <div class="slider-container">
-              <ha-icon class="slider-icon" icon="mdi:volume-high"></ha-icon>
+              <div class="slider-control-group">
+                <ha-icon class="slider-icon" icon="mdi:volume-high"></ha-icon>
+                <span class="slider-label">Volume</span>
+              </div>
               <input type="range" class="slider" min="0" max="1" step="0.01" 
                      .value=${volume}
                      @change=${(e) => this._setVolume(mediaPlayerEntity, e.target.value)}>
@@ -372,7 +388,10 @@ class AxiumCard extends LitElement {
             <!-- Bass control with icon -->
             ${bass ? html`
               <div class="slider-container">
-                <ha-icon class="slider-icon" icon="mdi:tune-vertical-variant"></ha-icon>
+                <div class="slider-control-group">
+                  <ha-icon class="slider-icon" icon="mdi:tune-vertical-variant"></ha-icon>
+                  <span class="slider-label">Bass</span>
+                </div>
                 <input type="range" class="slider" 
                        min=${bass.attributes.min || -10} 
                        max=${bass.attributes.max || 10} 
@@ -391,7 +410,10 @@ class AxiumCard extends LitElement {
             <!-- Treble control with icon -->
             ${treble ? html`
               <div class="slider-container">
-                <ha-icon class="slider-icon" icon="mdi:tune"></ha-icon>
+                <div class="slider-control-group">
+                  <ha-icon class="slider-icon" icon="mdi:tune"></ha-icon>
+                  <span class="slider-label">Treble</span>
+                </div>
                 <input type="range" class="slider" 
                        min=${treble.attributes.min || -10} 
                        max=${treble.attributes.max || 10} 
