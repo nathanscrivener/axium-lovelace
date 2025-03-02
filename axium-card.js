@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.6';
+const CARD_VERSION = '1.3.7';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -260,7 +260,7 @@ class AxiumCard extends LitElement {
         height: var(--mmp-progress-height);
         cursor: pointer;
         border-radius: calc(var(--mmp-progress-height) / 2);
-        overflow: hidden;
+        overflow: visible;
         background-color: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.1);
       }
       
@@ -276,18 +276,19 @@ class AxiumCard extends LitElement {
         top: 50%;
         height: 16px;
         width: 16px;
-        border-radius: 50%;
+        border-radius: 50% !important;
         background-color: var(--mmp-accent-color);
         transform: translate(-50%, -50%);
         transition: transform 0.15s ease;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         z-index: 1;
+        display: block;
       }
       
       /* Fix for Firefox to ensure circle appearance */
       @-moz-document url-prefix() {
         .mmp-player__slider-thumb {
-          border-radius: 50%;
+          border-radius: 50% !important;
           overflow: hidden;
         }
       }
@@ -527,6 +528,9 @@ class AxiumCard extends LitElement {
     if (track && thumb) {
       track.style.width = `${percentage}%`;
       thumb.style.left = `${percentage}%`;
+      
+      // Force the thumb to be visible and circular
+      thumb.style.borderRadius = '50%';
     }
   }
 
@@ -680,7 +684,7 @@ class AxiumCard extends LitElement {
                   @mousedown=${(e) => this._handleSliderDown(e, (val) => this._setVolume(mediaPlayerEntity, val), 0, 1, 0.01)}
                   @touchstart=${(e) => this._handleSliderDown(e, (val) => this._setVolume(mediaPlayerEntity, val), 0, 1, 0.01)}>
                   <div class="mmp-player__slider-track"></div>
-                  <div class="mmp-player__slider-thumb"></div>
+                  <div class="mmp-player__slider-thumb" style="border-radius: 50% !important; display: block;"></div>
                 </div>
                 <div class="mmp-player__slider-value">${Math.round(volume * 100)}%</div>
               </div>
@@ -710,7 +714,7 @@ class AxiumCard extends LitElement {
                       bass.attributes.step || 1
                     )}>
                     <div class="mmp-player__slider-track"></div>
-                    <div class="mmp-player__slider-thumb"></div>
+                    <div class="mmp-player__slider-thumb" style="border-radius: 50% !important; display: block;"></div>
                   </div>
                   <div class="mmp-player__slider-value">${bass.state}</div>
                 </div>
@@ -741,7 +745,7 @@ class AxiumCard extends LitElement {
                       treble.attributes.step || 1
                     )}>
                     <div class="mmp-player__slider-track"></div>
-                    <div class="mmp-player__slider-thumb"></div>
+                    <div class="mmp-player__slider-thumb" style="border-radius: 50% !important; display: block;"></div>
                   </div>
                   <div class="mmp-player__slider-value">${treble.state}</div>
                 </div>
