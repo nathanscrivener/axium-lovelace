@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.5';
+const CARD_VERSION = '1.3.6';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -205,9 +205,9 @@ class AxiumCard extends LitElement {
       }
       
       .mmp-player__power ha-icon {
-        --mdc-icon-size: 22px;
+        --mdc-icon-size: 26px;
         display: flex;
-        color: var(--mmp-icon-color);
+        color: var(--mmp-text-color);
         transition: color 0.25s ease, transform 0.15s ease;
         opacity: var(--mmp-info-opacity);
       }
@@ -274,13 +274,22 @@ class AxiumCard extends LitElement {
       .mmp-player__slider-thumb {
         position: absolute;
         top: 50%;
-        height: 12px;
-        width: 12px;
+        height: 16px;
+        width: 16px;
         border-radius: 50%;
         background-color: var(--mmp-accent-color);
         transform: translate(-50%, -50%);
         transition: transform 0.15s ease;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        z-index: 1;
+      }
+      
+      /* Fix for Firefox to ensure circle appearance */
+      @-moz-document url-prefix() {
+        .mmp-player__slider-thumb {
+          border-radius: 50%;
+          overflow: hidden;
+        }
       }
       
       .mmp-player__slider-container:hover .mmp-player__slider-thumb {
