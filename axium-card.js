@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.1';
+const CARD_VERSION = '1.3.2';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -111,7 +111,7 @@ class AxiumCard extends LitElement {
       
       .mmp-player__name {
         font-weight: var(--mmp-name-font-weight);
-        font-size: 1.2rem;
+        font-size: 1rem;
         color: var(--mmp-text-color);
         white-space: nowrap;
         overflow: hidden;
@@ -119,11 +119,18 @@ class AxiumCard extends LitElement {
       }
       
       .mmp-player__source {
-        font-size: 0.9rem;
+        font-size: 1rem;
         opacity: var(--mmp-info-opacity);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        margin-right: 4px;
+      }
+      
+      .mmp-player__controls-flex {
+        display: flex;
+        align-items: center;
+        flex: 1;
       }
       
       .mmp-player__media-dropdown {
@@ -607,38 +614,42 @@ class AxiumCard extends LitElement {
               <ha-icon icon="mdi:speaker"></ha-icon>
             </div>
             
-            <!-- Zone info (name and source if on) -->
+            <!-- Zone info -->
             <div class="mmp-player__info">
               <div class="mmp-player__name">${zoneName}</div>
+            </div>
+            
+            <div class="mmp-player__controls-flex">
+              <!-- Source name to the left of dropdown -->
               ${isPowered && currentSource ? html`
                 <div class="mmp-player__source">${currentSource}</div>
               ` : html``}
-            </div>
-            
-            <!-- Source dropdown menu -->
-            <div class="mmp-player__media-dropdown ${this._showSourceMenu[zoneId] ? 'open' : ''}" 
-                 data-zone-id="${zoneId}"
-                 @click=${(e) => this._toggleSourceMenu(zoneId, e)}>
-              <ha-icon icon="mdi:chevron-right"></ha-icon>
               
-              <!-- Dropdown content -->
-              <div class="mmp-player__media-dropdown-list ${this._showSourceMenu[zoneId] ? 'open' : ''}">
-                ${sources.map(source => html`
-                  <div class="mmp-player__source-option ${source === currentSource ? 'active' : ''}"
-                       @click=${(e) => {
-                         e.stopPropagation();
-                         this._selectSource(mediaPlayerEntity, source, zoneId);
-                       }}>
-                    ${source}
-                  </div>
-                `)}
+              <!-- Source dropdown menu -->
+              <div class="mmp-player__media-dropdown ${this._showSourceMenu[zoneId] ? 'open' : ''}" 
+                  data-zone-id="${zoneId}"
+                  @click=${(e) => this._toggleSourceMenu(zoneId, e)}>
+                <ha-icon icon="mdi:chevron-right"></ha-icon>
+                
+                <!-- Dropdown content -->
+                <div class="mmp-player__media-dropdown-list ${this._showSourceMenu[zoneId] ? 'open' : ''}">
+                  ${sources.map(source => html`
+                    <div class="mmp-player__source-option ${source === currentSource ? 'active' : ''}"
+                        @click=${(e) => {
+                          e.stopPropagation();
+                          this._selectSource(mediaPlayerEntity, source, zoneId);
+                        }}>
+                      ${source}
+                    </div>
+                  `)}
+                </div>
               </div>
             </div>
             
             <!-- Power toggle -->
             <div class="mmp-player__power" @click=${() => this._togglePower(mediaPlayerEntity)}>
               <ha-icon 
-                icon="${isPowered ? 'mdi:power' : 'mdi:power-off'}" 
+                icon="mdi:power" 
                 class="${isPowered ? 'active' : ''}">
               </ha-icon>
             </div>
