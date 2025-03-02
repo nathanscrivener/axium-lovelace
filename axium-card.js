@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.1.1';
+const CARD_VERSION = '1.2.0';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -14,184 +14,284 @@ class AxiumCard extends LitElement {
   static get styles() {
     return css`
       :host {
-        display: block;
+        --mmp-scale: var(--mini-media-player-scale, 1);
+        --mmp-unit: calc(var(--mmp-scale) * 40px);
+        --mmp-name-font-weight: 400;
         --mmp-accent-color: var(--accent-color, #f39c12);
         --mmp-text-color: var(--primary-text-color, #212121);
+        --mmp-text-color-inverted: var(--text-primary-color, #fff);
         --mmp-icon-color: var(--paper-item-icon-color, #44739e);
-        --mmp-button-color: var(--paper-item-icon-active-color, #fdd835);
         --mmp-info-opacity: 0.7;
-        --mmp-bg-opacity: 0.2;
+        --mmp-bg-opacity: 0.1;
+        --mmp-artwork-opacity: 1;
+        --mmp-progress-height: 6px;
         --mmp-border-radius: 12px;
-        --mmp-unit-opacity: 0.6;
+        --ha-card-border-radius: 0;
+        
+        display: block;
+        transition: all 0.5s ease;
+        margin-bottom: 0.5rem;
       }
-      
+
       ha-card {
-        padding: 8px;
-        border-radius: var(--ha-card-border-radius, 4px);
-        background: var(--ha-card-background, var(--card-background-color, white));
-      }
-      
-      .card-content {
-        padding: 8px;
-      }
-      
-      .card-heading {
-        padding: 0 8px 8px 8px;
+        cursor: default;
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.1));
-        margin-bottom: 8px;
-      }
-      
-      .card-heading .title {
-        font-weight: 500;
-        font-size: 1.2em;
-        color: var(--mmp-text-color);
-      }
-      
-      .zone {
-        margin-bottom: 8px;
-        padding: 8px;
-        border-radius: var(--mmp-border-radius);
-        background: var(--ha-card-background, var(--card-background-color, white));
-        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+        border-radius: var(--ha-card-border-radius);
+        border: none;
+        box-shadow: var(--ha-card-box-shadow, 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.12), 0 1px 5px 0 rgba(0, 0, 0, 0.2));
         overflow: hidden;
       }
       
-      .zone:last-child {
-        margin-bottom: 0;
+      .mmp-card__inner {
+        padding: 16px;
+        position: relative;
+        width: 100%;
       }
       
-      .zone-header {
+      .mmp__bg {
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        opacity: var(--mmp-bg-opacity);
+      }
+      
+      .mmp-container {
+        position: relative;
+      }
+      
+      .mmp-title {
+        padding: 0 0 8px 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 8px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.06));
-      }
-      
-      .zone-name {
         font-weight: 500;
         font-size: 1.1em;
-        letter-spacing: 0.01em;
-        text-transform: capitalize;
         color: var(--mmp-text-color);
       }
       
-      .zone-power {
-        cursor: pointer;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .mmp-title__version {
+        font-size: 0.7em;
+        opacity: 0.5;
       }
       
-      .zone-power ha-icon {
-        --mdc-icon-size: 20px;
-        padding: 6px;
-        border-radius: 50%;
-        background: var(--secondary-background-color, rgba(0,0,0,0.06));
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .zone-power ha-icon:hover {
-        background: var(--primary-color);
-        color: var(--primary-text-color) !important;
-      }
-      
-      .source-selector {
-        width: 100%;
-        margin-bottom: 8px;
-        border: none;
-        background: var(--secondary-background-color, rgba(0,0,0,0.06));
+      /* Zone styling */
+      .mmp-zone {
+        position: relative;
+        margin-bottom: 10px;
         border-radius: 4px;
-        padding: 8px 32px 8px 12px;
-        color: var(--primary-text-color);
-        font-size: 0.9em;
-        appearance: none;
-        -webkit-appearance: none;
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M7 10l5 5 5-5z"/></svg>');
-        background-repeat: no-repeat;
-        background-position: right 8px center;
-        transition: all 0.2s ease;
+        overflow: hidden;
+        background: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.05);
       }
-      
-      .source-selector:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px var(--mmp-accent-color);
+
+      .mmp-zone:last-child {
+        margin-bottom: 0;
       }
-      
-      .sliders {
+
+      .mmp-zone__container {
+        padding: 8px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        position: relative;
       }
       
-      .slider-container {
+      .mmp-zone__row {
         display: flex;
         align-items: center;
+        position: relative;
+      }
+      
+      .mmp-zone__power {
+        min-width: 28px;
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .mmp-zone__power ha-icon {
+        --mdc-icon-size: 20px;
+        display: flex;
+        color: var(--mmp-icon-color);
+        padding: 5px;
+        border-radius: 50%;
+        transition: all 0.25s ease;
+      }
+      
+      .mmp-zone__power ha-icon.active {
+        color: var(--mmp-accent-color);
+      }
+      
+      .mmp-zone__power ha-icon:hover {
+        background: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.1);
+      }
+      
+      .mmp-zone__power ha-icon.active:hover {
+        color: var(--mmp-text-color-inverted);
+        background-color: var(--mmp-accent-color);
+      }
+      
+      .mmp-zone__info {
+        flex: 1;
+        margin-right: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      
+      .mmp-zone__name {
+        font-weight: var(--mmp-name-font-weight);
+        font-size: 0.95rem;
+        line-height: 1.2;
+        color: var(--mmp-text-color);
+      }
+      
+      .mmp-zone__source {
+        font-size: 0.75rem;
+        opacity: var(--mmp-info-opacity);
+        line-height: 1.2;
+        margin-top: 2px;
+      }
+      
+      .mmp-zone__controls-row {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+      }
+      
+      .mmp-zone__controls {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
         gap: 6px;
       }
       
-      .slider-control-group {
+      .mmp-zone__slider-row {
         display: flex;
         align-items: center;
-        width: 70px;
       }
       
-      .slider-icon {
-        --mdc-icon-size: 18px;
-        color: var(--mmp-icon-color);
+      .mmp-control-label {
+        min-width: 60px;
+        font-size: 0.75rem;
         opacity: var(--mmp-info-opacity);
+        display: flex;
+        align-items: center;
+      }
+      
+      .mmp-control-label ha-icon {
+        --mdc-icon-size: 16px;
         margin-right: 4px;
       }
       
-      .slider-label {
-        font-size: 0.8em;
-        opacity: 0.8;
-        white-space: nowrap;
-      }
-      
-      .slider {
-        flex-grow: 1;
-        height: 32px;
+      .mmp-slider-container {
+        position: relative;
+        flex: 1;
+        height: var(--mmp-progress-height);
         cursor: pointer;
-        border-radius: 28px;
-        --paper-slider-active-color: var(--mmp-accent-color);
-        --paper-slider-knob-color: var(--mmp-accent-color);
-        --paper-slider-pin-color: var(--mmp-accent-color);
-        --paper-slider-container-color: var(--slider-track-color, rgba(0,0,0,0.1));
+        border-radius: calc(var(--mmp-progress-height) / 2);
+        overflow: hidden;
+        background-color: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.1);
       }
       
-      .slider-value {
-        min-width: 32px;
+      .mmp-slider-track {
+        position: absolute;
+        height: 100%;
+        background-color: var(--mmp-accent-color);
+        transition: transform 0.15s ease;
+      }
+      
+      .mmp-slider-thumb {
+        position: absolute;
+        top: 50%;
+        height: 12px;
+        width: 12px;
+        border-radius: 50%;
+        background-color: var(--mmp-accent-color);
+        transform: translate(-50%, -50%);
+        transition: transform 0.15s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+      
+      .mmp-slider-container:hover .mmp-slider-thumb {
+        transform: translate(-50%, -50%) scale(1.2);
+      }
+      
+      .mmp-slider-value {
+        min-width: 30px;
         text-align: right;
-        opacity: var(--mmp-unit-opacity);
-        font-size: 0.8em;
-        font-variant-numeric: tabular-nums;
+        font-size: 0.75rem;
+        margin-left: 8px;
+        opacity: var(--mmp-info-opacity);
       }
       
-      .error-text {
+      .mmp-source-select {
+        width: 100%;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        position: relative;
+      }
+      
+      .mmp-source-select label {
+        min-width: 60px;
+        font-size: 0.75rem;
+        opacity: var(--mmp-info-opacity);
+        display: flex;
+        align-items: center;
+      }
+      
+      .mmp-source-select label ha-icon {
+        --mdc-icon-size: 16px;
+        margin-right: 4px;
+      }
+      
+      .mmp-source-select select {
+        flex: 1;
+        border: none;
+        cursor: pointer;
+        padding: 4px 24px 4px 8px;
+        border-radius: 4px;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.06);
+        color: var(--primary-text-color);
+        font-size: 0.8rem;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M7 10l5 5 5-5z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 4px center;
+      }
+      
+      .mmp-source-select select:focus {
+        outline: none;
+        background-color: rgba(var(--rgb-primary-text-color, 0, 0, 0), 0.1);
+      }
+      
+      .mmp-error {
+        padding: 8px;
+        border-radius: 4px;
+        background-color: rgba(var(--rgb-error-color, 220, 53, 69), 0.1);
         color: var(--error-color);
-        font-size: 0.85em;
-        font-style: italic;
-        opacity: 0.8;
-        padding: 4px 0;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
       }
       
-      .disabled {
+      .mmp-error ha-icon {
+        --mdc-icon-size: 16px;
+        margin-right: 8px;
+        color: var(--error-color);
+      }
+      
+      .mmp-disabled {
         opacity: 0.5;
         pointer-events: none;
       }
       
-      .hidden {
+      .mmp-hidden {
         display: none;
       }
     `;
@@ -200,6 +300,7 @@ class AxiumCard extends LitElement {
   constructor() {
     super();
     this.zones = [];
+    this._sliderUpdateInterval = {};
     
     // Log version
     console.log(`Axium Card v${CARD_VERSION} loading...`);
@@ -222,7 +323,7 @@ class AxiumCard extends LitElement {
 
   // Configure card size in UI
   getCardSize() {
-    return this.config.zones.length * 3;
+    return this.config.zones.length * 2.5;
   }
 
   _togglePower(entity_id) {
@@ -265,6 +366,89 @@ class AxiumCard extends LitElement {
     return zoneName.replace(/^Axium\s+/i, '');
   }
 
+  // Custom slider handlers
+  _handleSliderDown(e, callback, min, max, step) {
+    const container = e.currentTarget;
+    const rect = container.getBoundingClientRect();
+    const value = this._calculateSliderValue(e, rect, min, max);
+    
+    // Update thumb position visually
+    this._updateSliderPosition(container, value, min, max);
+    
+    // Call the callback with the new value
+    if (callback) {
+      callback(value);
+    }
+    
+    // Set up move and release handlers
+    const moveHandler = (e) => {
+      e.preventDefault();
+      const newValue = this._calculateSliderValue(e, rect, min, max);
+      // Update in smaller increments for smoother appearance
+      this._updateSliderPosition(container, newValue, min, max);
+      
+      // Apply step to the actual value we'll send
+      let steppedValue = Math.round(newValue / step) * step;
+      // Ensure the value is within bounds
+      steppedValue = Math.max(min, Math.min(max, steppedValue));
+      
+      // Throttle actual calls to avoid overwhelming the system
+      clearTimeout(this._sliderUpdateInterval[container.id]);
+      this._sliderUpdateInterval[container.id] = setTimeout(() => {
+        if (callback) {
+          callback(steppedValue);
+        }
+      }, 50);
+    };
+    
+    const upHandler = () => {
+      window.removeEventListener('mousemove', moveHandler);
+      window.removeEventListener('mouseup', upHandler);
+      window.removeEventListener('touchmove', moveHandler);
+      window.removeEventListener('touchend', upHandler);
+    };
+    
+    window.addEventListener('mousemove', moveHandler);
+    window.addEventListener('mouseup', upHandler);
+    window.addEventListener('touchmove', moveHandler);
+    window.addEventListener('touchend', upHandler);
+  }
+
+  _calculateSliderValue(e, rect, min, max) {
+    let clientX;
+    if (e.touches) {
+      clientX = e.touches[0].clientX;
+    } else {
+      clientX = e.clientX;
+    }
+    
+    const percentage = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    return min + percentage * (max - min);
+  }
+
+  _updateSliderPosition(container, value, min, max) {
+    const track = container.querySelector('.mmp-slider-track');
+    const thumb = container.querySelector('.mmp-slider-thumb');
+    
+    if (track && thumb) {
+      const percentage = (value - min) / (max - min) * 100;
+      track.style.width = `${percentage}%`;
+      thumb.style.left = `${percentage}%`;
+    }
+  }
+
+  // Setup slider with correct initial position
+  _setupSlider(container, value, min, max) {
+    const percentage = (value - min) / (max - min) * 100;
+    const track = container.querySelector('.mmp-slider-track');
+    const thumb = container.querySelector('.mmp-slider-thumb');
+    
+    if (track && thumb) {
+      track.style.width = `${percentage}%`;
+      thumb.style.left = `${percentage}%`;
+    }
+  }
+
   // Find entity by a partial name match
   _findEntity(entityType, partialId) {
     if (!this.hass) return null;
@@ -303,18 +487,20 @@ class AxiumCard extends LitElement {
 
   render() {
     if (!this.hass || !this.config) {
-      return html`<ha-card><div class="card-content">Loading Axium Card...</div></ha-card>`;
+      return html`<ha-card><div class="mmp-card__inner">Loading Axium Card...</div></ha-card>`;
     }
 
     return html`
       <ha-card>
-        <div class="card-heading">
-          <div class="title">${this.config.title || 'Axium Amplifier'}</div>
-          <div class="version-info" style="font-size: 0.7em; opacity: 0.6;">v${CARD_VERSION}</div>
-        </div>
-        
-        <div class="card-content">
-          ${this.zones.map(zoneId => this._renderZone(zoneId))}
+        <div class="mmp-card__inner">
+          <div class="mmp__bg"></div>
+          <div class="mmp-container">
+            <div class="mmp-title">
+              <span>${this.config.title || 'Axium Amplifier'}</span>
+              <span class="mmp-title__version">v${CARD_VERSION}</span>
+            </div>
+            ${this.zones.map(zoneId => this._renderZone(zoneId))}
+          </div>
         </div>
       </ha-card>
     `;
@@ -327,11 +513,9 @@ class AxiumCard extends LitElement {
     
     if (!mediaPlayer) {
       return this.config.show_error_messages ? html`
-        <div class="zone" style="border: 1px solid var(--error-color, red); opacity: 0.8;">
-          <div class="error-text">
-            <ha-icon icon="mdi:alert-circle" style="--mdc-icon-size: 16px;"></ha-icon>
-            Media player entity not found: ${mediaPlayerEntity}
-          </div>
+        <div class="mmp-error">
+          <ha-icon icon="mdi:alert-circle"></ha-icon>
+          <span>Media player entity not found: ${mediaPlayerEntity}</span>
         </div>
       ` : html``;
     }
@@ -350,88 +534,164 @@ class AxiumCard extends LitElement {
     const sources = mediaPlayer.attributes.source_list || [];
     
     return html`
-      <div class="zone">
-        <div class="zone-header">
-          <div class="zone-name">${zoneName}</div>
-          <div class="zone-power" @click=${() => this._togglePower(mediaPlayerEntity)}>
-            <ha-icon icon="${isPowered ? 'mdi:power' : 'mdi:power-off'}" 
-                     style="color: ${isPowered ? 'var(--success-color, #28a745)' : 'var(--error-color, #dc3545)'};">
-            </ha-icon>
-          </div>
-        </div>
-        
-        <div class=${isPowered ? '' : 'disabled'}>
-          <!-- Source selector with improved styling -->
-          <div class="source-control">
-            <select class="source-selector" 
-                    @change=${(e) => this._selectSource(mediaPlayerEntity, e.target.value)} 
-                    .value=${currentSource}>
-              ${sources.map(source => html`
-                <option value=${source} ?selected=${source === currentSource}>${source}</option>
-              `)}
-            </select>
-          </div>
-          
-          <div class="sliders">
-            <!-- Volume control with icon -->
-            <div class="slider-container">
-              <div class="slider-control-group">
-                <ha-icon class="slider-icon" icon="mdi:volume-high"></ha-icon>
-                <span class="slider-label">Volume</span>
-              </div>
-              <input type="range" class="slider" min="0" max="1" step="0.01" 
-                     .value=${volume}
-                     @change=${(e) => this._setVolume(mediaPlayerEntity, e.target.value)}>
-              <div class="slider-value">${Math.round(volume * 100)}%</div>
+      <div class="mmp-zone">
+        <div class="mmp-zone__container">
+          <!-- Top row with power, name and source -->
+          <div class="mmp-zone__row">
+            <div class="mmp-zone__power" @click=${() => this._togglePower(mediaPlayerEntity)}>
+              <ha-icon 
+                icon="${isPowered ? 'mdi:power' : 'mdi:power-off'}" 
+                class="${isPowered ? 'active' : ''}">
+              </ha-icon>
             </div>
             
-            <!-- Bass control with icon -->
-            ${bass ? html`
-              <div class="slider-container">
-                <div class="slider-control-group">
-                  <ha-icon class="slider-icon" icon="mdi:tune-vertical-variant"></ha-icon>
-                  <span class="slider-label">Bass</span>
+            <div class="mmp-zone__info">
+              <div class="mmp-zone__name">${zoneName}</div>
+              ${isPowered && currentSource ? html`
+                <div class="mmp-zone__source">${currentSource}</div>
+              ` : html``}
+            </div>
+          </div>
+          
+          <div class="${isPowered ? '' : 'mmp-disabled'}">
+            <!-- Volume slider -->
+            <div class="mmp-zone__controls">
+              <div class="mmp-zone__slider-row">
+                <div class="mmp-control-label">
+                  <ha-icon icon="mdi:volume-high"></ha-icon>
+                  <span>Volume</span>
                 </div>
-                <input type="range" class="slider" 
-                       min=${bass.attributes.min || -10} 
-                       max=${bass.attributes.max || 10} 
-                       step=${bass.attributes.step || 1} 
-                       .value=${bass.state}
-                       @change=${(e) => this._setBass(bassEntity, e.target.value)}>
-                <div class="slider-value">${bass.state}</div>
+                <div 
+                  class="mmp-slider-container" 
+                  id="volume-${zoneId}"
+                  @mousedown=${(e) => this._handleSliderDown(e, (val) => this._setVolume(mediaPlayerEntity, val), 0, 1, 0.01)}
+                  @touchstart=${(e) => this._handleSliderDown(e, (val) => this._setVolume(mediaPlayerEntity, val), 0, 1, 0.01)}>
+                  <div class="mmp-slider-track"></div>
+                  <div class="mmp-slider-thumb"></div>
+                </div>
+                <div class="mmp-slider-value">${Math.round(volume * 100)}%</div>
               </div>
-            ` : this.config.show_error_messages ? html`
-              <div class="error-text">
-                <ha-icon icon="mdi:tune-vertical-variant" style="--mdc-icon-size: 16px;"></ha-icon>
-                Bass control not available
-              </div>
-            ` : html``}
+              
+              <!-- Bass slider -->
+              ${bass ? html`
+                <div class="mmp-zone__slider-row">
+                  <div class="mmp-control-label">
+                    <ha-icon icon="mdi:tune-vertical-variant"></ha-icon>
+                    <span>Bass</span>
+                  </div>
+                  <div 
+                    class="mmp-slider-container" 
+                    id="bass-${zoneId}"
+                    @mousedown=${(e) => this._handleSliderDown(
+                      e, 
+                      (val) => this._setBass(bassEntity, val), 
+                      bass.attributes.min || -10, 
+                      bass.attributes.max || 10,
+                      bass.attributes.step || 1
+                    )}
+                    @touchstart=${(e) => this._handleSliderDown(
+                      e, 
+                      (val) => this._setBass(bassEntity, val), 
+                      bass.attributes.min || -10, 
+                      bass.attributes.max || 10,
+                      bass.attributes.step || 1
+                    )}>
+                    <div class="mmp-slider-track"></div>
+                    <div class="mmp-slider-thumb"></div>
+                  </div>
+                  <div class="mmp-slider-value">${bass.state}</div>
+                </div>
+              ` : html``}
+              
+              <!-- Treble slider -->
+              ${treble ? html`
+                <div class="mmp-zone__slider-row">
+                  <div class="mmp-control-label">
+                    <ha-icon icon="mdi:tune"></ha-icon>
+                    <span>Treble</span>
+                  </div>
+                  <div 
+                    class="mmp-slider-container" 
+                    id="treble-${zoneId}"
+                    @mousedown=${(e) => this._handleSliderDown(
+                      e, 
+                      (val) => this._setTreble(trebleEntity, val), 
+                      treble.attributes.min || -10, 
+                      treble.attributes.max || 10,
+                      treble.attributes.step || 1
+                    )}
+                    @touchstart=${(e) => this._handleSliderDown(
+                      e, 
+                      (val) => this._setTreble(trebleEntity, val), 
+                      treble.attributes.min || -10, 
+                      treble.attributes.max || 10,
+                      treble.attributes.step || 1
+                    )}>
+                    <div class="mmp-slider-track"></div>
+                    <div class="mmp-slider-thumb"></div>
+                  </div>
+                  <div class="mmp-slider-value">${treble.state}</div>
+                </div>
+              ` : html``}
+            </div>
             
-            <!-- Treble control with icon -->
-            ${treble ? html`
-              <div class="slider-container">
-                <div class="slider-control-group">
-                  <ha-icon class="slider-icon" icon="mdi:tune"></ha-icon>
-                  <span class="slider-label">Treble</span>
-                </div>
-                <input type="range" class="slider" 
-                       min=${treble.attributes.min || -10} 
-                       max=${treble.attributes.max || 10} 
-                       step=${treble.attributes.step || 1} 
-                       .value=${treble.state}
-                       @change=${(e) => this._setTreble(trebleEntity, e.target.value)}>
-                <div class="slider-value">${treble.state}</div>
-              </div>
-            ` : this.config.show_error_messages ? html`
-              <div class="error-text">
-                <ha-icon icon="mdi:tune" style="--mdc-icon-size: 16px;"></ha-icon>
-                Treble control not available
-              </div>
-            ` : html``}
+            <!-- Source selector -->
+            <div class="mmp-source-select">
+              <label>
+                <ha-icon icon="mdi:music-box-multiple"></ha-icon>
+                <span>Source</span>
+              </label>
+              <select @change=${(e) => this._selectSource(mediaPlayerEntity, e.target.value)}>
+                ${sources.map(source => html`
+                  <option value=${source} ?selected=${source === currentSource}>${source}</option>
+                `)}
+              </select>
+            </div>
           </div>
         </div>
       </div>
     `;
+  }
+
+  updated(changedProps) {
+    super.updated(changedProps);
+    
+    // Initialize sliders after they've been rendered
+    if (changedProps.has('hass')) {
+      this.zones.forEach(zoneId => {
+        const mediaPlayerEntity = `media_player.axium_${zoneId}`;
+        const mediaPlayer = this.hass.states[mediaPlayerEntity];
+        if (mediaPlayer) {
+          const volume = mediaPlayer.attributes.volume_level || 0;
+          const volumeSlider = this.shadowRoot.querySelector(`#volume-${zoneId}`);
+          if (volumeSlider) {
+            this._setupSlider(volumeSlider, volume, 0, 1);
+          }
+          
+          const bassEntity = `number.axium_${zoneId}_bass`;
+          const bass = this.hass.states[bassEntity];
+          if (bass) {
+            const bassSlider = this.shadowRoot.querySelector(`#bass-${zoneId}`);
+            if (bassSlider) {
+              const min = bass.attributes.min || -10;
+              const max = bass.attributes.max || 10;
+              this._setupSlider(bassSlider, Number(bass.state), min, max);
+            }
+          }
+          
+          const trebleEntity = `number.axium_${zoneId}_treble`;
+          const treble = this.hass.states[trebleEntity];
+          if (treble) {
+            const trebleSlider = this.shadowRoot.querySelector(`#treble-${zoneId}`);
+            if (trebleSlider) {
+              const min = treble.attributes.min || -10;
+              const max = treble.attributes.max || 10;
+              this._setupSlider(trebleSlider, Number(treble.state), min, max);
+            }
+          }
+        }
+      });
+    }
   }
 }
 
