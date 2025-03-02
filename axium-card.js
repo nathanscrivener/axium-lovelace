@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
 
 // Version and timestamp for cache busting
-const CARD_VERSION = '1.3.0';
+const CARD_VERSION = '1.3.1';
 
 class AxiumCard extends LitElement {
   static get properties() {
@@ -111,7 +111,7 @@ class AxiumCard extends LitElement {
       
       .mmp-player__name {
         font-weight: var(--mmp-name-font-weight);
-        font-size: 0.95rem;
+        font-size: 1.2rem;
         color: var(--mmp-text-color);
         white-space: nowrap;
         overflow: hidden;
@@ -119,7 +119,7 @@ class AxiumCard extends LitElement {
       }
       
       .mmp-player__source {
-        font-size: 0.75rem;
+        font-size: 0.9rem;
         opacity: var(--mmp-info-opacity);
         white-space: nowrap;
         overflow: hidden;
@@ -170,7 +170,7 @@ class AxiumCard extends LitElement {
       .mmp-player__source-option {
         padding: 8px 16px;
         cursor: pointer;
-        font-size: 0.9rem;
+        font-size: 1rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -235,7 +235,7 @@ class AxiumCard extends LitElement {
       
       .mmp-player__slider-label {
         min-width: 60px;
-        font-size: 0.75rem;
+        font-size: 0.9rem;
         opacity: var(--mmp-info-opacity);
         display: flex;
         align-items: center;
@@ -282,7 +282,7 @@ class AxiumCard extends LitElement {
       .mmp-player__slider-value {
         min-width: 30px;
         text-align: right;
-        font-size: 0.75rem;
+        font-size: 0.9rem;
         opacity: var(--mmp-info-opacity);
       }
       
