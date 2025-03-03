@@ -613,8 +613,11 @@ class AxiumCard extends LitElement {
     container.setAttribute('data-min', min);
     container.setAttribute('data-max', max);
     
-    // Use the stored value if available, otherwise use the provided value
-    const displayValue = (container._lastSentValue !== undefined) ? container._lastSentValue : value;
+    // CHANGE: Only prefer the last sent value during active interaction
+    // When not interacting, always use the provided entity state value
+    const displayValue = container._userInteracting ? 
+      (container._lastSentValue !== undefined ? container._lastSentValue : value) : 
+      value;
     
     const percentage = (displayValue - min) / (max - min) * 100;
     const track = container.querySelector('.mmp-player__slider-track');
@@ -650,8 +653,8 @@ class AxiumCard extends LitElement {
       tooltip.style.left = `${percentage}%`;
     }
     
-    // Store the last value to prevent unnecessary updates
-    if (container._lastSentValue === undefined) {
+    // Store the last value only if we're actively interacting
+    if (container._userInteracting && container._lastSentValue === undefined) {
       container._lastSentValue = value;
     }
   }
