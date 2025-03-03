@@ -27,7 +27,7 @@ class AxiumCard extends LitElement {
         --mmp-artwork-opacity: 1;
         --mmp-progress-height: 4px;
         --mmp-border-radius: 12px;
-        --ha-card-border-radius: 0;
+        --ha-card-border-radius: var(--ha-card-border-radius, var(--mmp-border-radius));
         
         display: block;
         transition: all 0.5s ease;
