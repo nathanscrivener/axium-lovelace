@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'https://unpkg.com/lit-element@2.4.0/lit-element.js?module';
+import { LitElement, html, css } from 'https://cdn.skypack.dev/lit-element@2.4.0';
 
 // Version and timestamp for cache busting
 const CARD_VERSION = '1.4.4';
@@ -936,4 +936,4 @@ window.customCards.push({
 });
 
 // Log confirmation message
-console.log(`Axium Card v${CARD_VERSION} registered successfully!`); 
+console.log(`Axium Card v${CARD_VERSION} registered successfully!`);
